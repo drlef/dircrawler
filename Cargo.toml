@@ -8,4 +8,5 @@ edition = "2021"
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "*"
+serde_json = "*"
 clap = { version = "4.0", features = ["derive"] }

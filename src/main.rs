@@ -92,15 +92,21 @@ fn main() {
     let m = Command::new("dircrawler")
         .about("Crawls a directory and all subdirectories")
         .arg(
+            Arg::new("directory_path")
+                .required(true)
+                .action(ArgAction::Set)
+        )
+        .arg(
             Arg::new("yaml")
                 .short('y')
                 .action(ArgAction::SetTrue)
                 .help("Output as yaml")
         )
         .arg(
-            Arg::new("directory_path")
-                .required(true)
-                .action(ArgAction::Set)
+            Arg::new("json")
+                .short('j')
+                .action(ArgAction::SetTrue)
+                .help("Output as json")
         )
         .get_matches();
 
@@ -112,8 +118,15 @@ fn main() {
         None => false,
     };
 
+    let json = match m.get_one::<bool>("json") {
+        Some(a) => *a,
+        None => false,
+    };
+
     if yaml {
         println!("{}", serde_yaml::to_string(&dir).unwrap());
+    } else if json {
+        println!("{}", serde_json::to_string(&dir).unwrap());
     } else {
         println!("{}", dir);
     }
