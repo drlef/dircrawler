@@ -34,10 +34,18 @@ impl fmt::Display for Directory {
 }
 
 fn crawl_dir(dir_path: &Path) -> Directory {
-    let paths = fs::read_dir(dir_path)
-        .unwrap()
-        .map(|res| res.unwrap().path())
+    let paths = fs::read_dir(dir_path);
+    let paths = match paths {
+        Ok(paths) => paths,
+        Err(err) => {
+            println!("error happened at: {:?}\n{:?}", dir_path, err);
+            return Directory{ files: Vec::new(), dirs: Vec::new() }
+        },
+    };
+
+    let paths = paths.map(|res| res.unwrap().path())
         .collect::<Vec<_>>();
+
     let subdir_paths = paths
         .iter()
         .filter(|path| path.is_dir())
@@ -53,6 +61,6 @@ fn crawl_dir(dir_path: &Path) -> Directory {
 }
 
 fn main() {
-    let dir = crawl_dir(&PathBuf::from("."));
+    let dir = crawl_dir(&PathBuf::from("/home/steff"));
     println!("{}", dir);
 }
