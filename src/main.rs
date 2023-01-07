@@ -1,5 +1,5 @@
-use std::{env, fs, fmt};
-use std::path::{Path, PathBuf};
+use std::{fs, fmt, path::{Path, PathBuf}};
+use clap::{Arg, ArgAction, Command};
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize)]
@@ -81,7 +81,6 @@ fn crawl_dir(dir_path: &Path) -> Directory {
 
     let mut subdirs = Vec::new();
     for dir in subdir_paths {
-        println!("subdir: {:?}", dir);
         subdirs.push(DirectoryEntry::new(dir.clone(), crawl_dir(dir)));
     }
 
@@ -90,15 +89,33 @@ fn crawl_dir(dir_path: &Path) -> Directory {
 }
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    let m = Command::new("dircrawler")
+        .about("Crawls a directory and all subdirectories")
+        .arg(
+            Arg::new("yaml")
+                .short('y')
+                .action(ArgAction::SetTrue)
+                .help("Output as yaml")
+        )
+        .arg(
+            Arg::new("directory_path")
+                .required(true)
+                .action(ArgAction::Set)
+        )
+        .get_matches();
 
-    let mut dir_path = ".";
-    if !args.is_empty() {
-        dir_path = &args[1];
+    let directory_path = m.get_one::<String>("directory_path").map(String::as_str).unwrap();
+    let dir = crawl_dir(&PathBuf::from(directory_path));
+
+    let yaml = match m.get_one::<bool>("yaml") {
+        Some(a) => *a,
+        None => false,
+    };
+
+    if yaml {
+        println!("{}", serde_yaml::to_string(&dir).unwrap());
+    } else {
+        println!("{}", dir);
     }
-
-    let dir = crawl_dir(&PathBuf::from(dir_path));
-    //println!("{}", dir);
-    println!("{}", serde_yaml::to_string(&dir).unwrap());
 }
 
